@@ -321,12 +321,45 @@ app.Run();
  *                                       2️. Query
  *                                       3️. Header
  *                                     
- *                                     - For complex types (classes):
+ *                                    - For complex types (classes):
  *                                       1. Body
  *                                       2. Custom BindAsync (if exists)
  *                                      
  *                                      
- *                                
+ * - Model Validation : Model Validation ensures that incoming request data is, It works together with model binding.
+ * 
+ *                      - Correct
+ *                      - Complete
+ *                      - Expected format
+ *                      - Rejected if invalid
+ *                      
+ *   -  What Happens Internally? 
+ *   
+ *                      HTTP Request
+ *                           ↓
+ *                      Model Binding
+ *                           ↓
+ *                    Model Validation     
+ *                           ↓
+ *                Endpoint Executes (if valid)
+ *                
+ *      - If validation fails → ASP.NET returns 400 Bad Request (in controllers automatically). 
+ *      
+ *      - Common Validation Attributes
+ *      
+ *                  |      Attribute   |       Purpose          |
+                    | ---------------- | ---------------------- |
+                    | `[Required]`     | Field must not be null |
+                    | `[StringLength]` | Limit string length    |
+                    | `[MaxLength]`    | Max size               |
+                    | `[Range]`        | Numeric range          |
+                    | `[EmailAddress]` | Valid email            |
+                    | `[Phone]`        | Valid phone            |
+                    | `[Compare]`      | Compare two fields     |
+
+ *          
+ *          
+ *          
  **/
 
 public class GetEmployeeParameter
