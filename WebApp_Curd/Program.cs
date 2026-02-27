@@ -242,7 +242,15 @@ app.Run();
  * - With mininmal api data annotation validation with minimal api, it is not part of this technology, with MVC and Razer pages the model validation is triggered 
  *   automatically , we provide data annotations to our model, but case of minimal api we have to add anuget package.
  *          
- *          
+ * - Custom model validation with validation attribute :   If we have more comlicated logic that requires us to use multiple properties at the same time
+ *   then we might run into issues because data annotation is not enough to do that.
+ *   
+ *   for example : if the position is manager the salaty has to be higher than 100000, this is a logic that needs a combination of both the position property
+ *                 and salary property , so how do we do this type of validation ? We can still use the data annotation but the built-in attributes are not
+ *                 enough, we need to create a custom validation attribute, So how do we do that ? 
+ *                 
+ *                 step-1 : create a class 
+ *                 step-2 : it must be derived from the ValidationAttribute class
  **/
 
 public class GetEmployeeParameter

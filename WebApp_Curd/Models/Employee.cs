@@ -11,6 +11,7 @@ namespace WebApp_Curd.Models
         public string Position { get; set; }
         [Required]
         [Range(50000, 200000)]
+        [Employee_EnsureSalary]
         public double Salary { get; set; }
 
 
