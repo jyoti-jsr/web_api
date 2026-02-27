@@ -5,135 +5,16 @@ using WebApp_Curd.Models;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.UseRouting();
 
-app.UseEndpoints(endpoints =>
+app.MapPost("/employees", (Employee employee) =>
 {
-
-    endpoints.MapGet("/", async (HttpContext context) =>
-    {
-        await context.Response.WriteAsync("Welcome to homepage");
-    });
-
-    endpoints.MapGet("/people", (Person? p) =>
-    {
-        return $"Id is {p?.Id} Name is {p?.Name}";
-    });
-
-    endpoints.MapGet("/employees", async (HttpContext context) =>
-    {
-        var employees = EmployeesRepository.GetEmployees();
-        string employeesJson = JsonSerializer.Serialize(employees);
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(employeesJson);
-    });
-
-    endpoints.MapGet("/employees/{id:int}", ([FromRoute(Name = "id")] int employeeId) =>
-    {
-
-        var employee = EmployeesRepository.GetEmployeeById(employeeId);
-
-        return employee; // this .net object will be serialized into json directly.
-    });
-
-    endpoints.MapGet("/employeesById", (int id) =>
-    {
-        var employee = EmployeesRepository.GetEmployeeById(id);
-
-        return employee;
-    });
-
-    endpoints.MapGet("/employeesByIdFromHeader", ([FromHeader] int id) =>
-    {
-        var employee = EmployeesRepository.GetEmployeeById(id);
-
-        return employee;
-    });
-
-    //endpoints.MapGet("/employees/{id:int}", async (HttpContext context) => 
-    //{ 
-    //    var id = context.Request.RouteValues["id"];
-    //    var employeeId = int.Parse(id.ToString());
-
-    //    var employee = EmployeesRepository.GetEmployeeById(employeeId);
-    //    string employeeJson = JsonSerializer.Serialize(employee);
-
-    //    context.Response.ContentType = "application/json";
-    //    await context.Response.WriteAsync(employeeJson);
-
-    //});
-
-    endpoints.MapGet("/employeesAsParamter/{id:int}", ([AsParameters] GetEmployeeParameter param) => // as we do [AsParameter] asp.net sees this as parameter
-    // same as  enpoints.MapGet("/employees/{id:int}",(int id, [FromQuery] string name, [FromHeader] string position)
-    {
-        var employee = EmployeesRepository.GetEmployeeById(param.Id);
-
-        employee.Name = param.Name;
-        employee.Position = param.Position;
-        return employee;
-
-    });
-
-    endpoints.MapGet("/employeesBindToArrayFromQuery", ([FromQuery(Name = "id")] int[] ids) =>
-    {
-        var employee = EmployeesRepository.GetEmployees();
-
-        var emps = employee.Where(emp => ids.Contains(emp.Id)).ToList();
-        return emps;
-    });
-
-    endpoints.MapGet("/employeesBindToArrayFromHeader", ([FromHeader(Name = "id")] int[] ids) =>
-    {
-        var employee = EmployeesRepository.GetEmployees();
-
-        var emps = employee.Where(emp => ids.Contains(emp.Id)).ToList();
-        return emps;
-    });
-
-
-    //endpoints.MapPost("/employees", async (HttpContext context) =>
-    //{
-    //    var employee = await context.Request.ReadFromJsonAsync<Employee>();
-
-    //    if (employee == null)
-    //    {
-    //        context.Response.StatusCode = 400;
-    //        return;
-    //    }
-
-    //    EmployeesRepository.AddEmployee(employee);
-
-    //    context.Response.StatusCode = 201;
-    //    await context.Response.WriteAsJsonAsync("New employee created");
-    //});
-
-    endpoints.MapPost("/employees", (Employee employee) => // model bind the complex type
-    {
-        if (employee is null || employee.Id <= 0)
-        {
-            return "provided data is not valid";
-        }
-        EmployeesRepository.AddEmployee(employee);
-        return "employee created";
-    });
-
-    endpoints.MapPut("/employees/{id}", async (HttpContext context) =>
-    {
-        //var employeeId = context.Request.RouteValues["id"];
-        var employee = await context.Request.ReadFromJsonAsync<Employee>();
-
-        EmployeesRepository.UpdateEmployee(employee);
-
-    });
-
-    endpoints.MapDelete("/employees/{id}", (HttpContext context) =>
-    {
-        var employeeId = context.Request.RouteValues["id"];
-        EmployeesRepository.DeleteEmployeeById(Convert.ToInt32(employeeId));
-
-    });
-
-});
+    /**
+     * - we can do required validation here but with the help of asp.net w can take advanatnge of the c# feature which is using 
+     *   System.ComponentModel.DataAnnotations; we can specify how these things can be validated.
+     * **/
+    EmployeesRepository.AddEmployee(employee);
+    return "Employee is added successfully.";
+}).WithParameterValidation();
 
 app.Run();
 
@@ -357,7 +238,9 @@ app.Run();
                     | `[Phone]`        | Valid phone            |
                     | `[Compare]`      | Compare two fields     |
 
- *          
+ * 
+ * - With mininmal api data annotation validation with minimal api, it is not part of this technology, with MVC and Razer pages the model validation is triggered 
+ *   automatically , we provide data annotations to our model, but case of minimal api we have to add anuget package.
  *          
  *          
  **/

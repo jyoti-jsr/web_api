@@ -1,10 +1,16 @@
-﻿namespace WebApp_Curd.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebApp_Curd.Models
 {
     public class Employee
     {
         public int Id { get; set; }
+
+        [Required]
         public string Name { get; set; }
         public string Position { get; set; }
+        [Required]
+        [Range(50000, 200000)]
         public double Salary { get; set; }
 
 
