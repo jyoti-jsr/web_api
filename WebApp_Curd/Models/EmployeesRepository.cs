@@ -26,16 +26,22 @@
             }
         }
 
-        public static void DeleteEmployeeById(int id)
+        public static bool DeleteEmployeeById(int id)
         {
-            if (id <= 0) return;
+            if (id <= 0)
+            {
+                return false;
+            }
 
             Employee emp = _employeesList.FirstOrDefault(e => e.Id == id);
 
             if (emp != null)
             {
                 _employeesList.Remove(emp);
+                return true;
             }
+
+            return false;
         }
 
         public static bool UpdateEmployee(Employee employee)
