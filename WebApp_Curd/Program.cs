@@ -1,14 +1,28 @@
 ﻿
 
+using Microsoft.AspNetCore.Http.HttpResults;
 using WebApp_Curd.Models;
+using Microsoft.AspNetCore.Mvc;
+using WebApp_Curd.Result;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
-
-app.MapGet("/", () =>
+// below code helps us get standard errors and status on incorrect request.
+if (app.Environment.IsDevelopment())
 {
-    return " Welcome to the portal"; // pure text
+    app.UseExceptionHandler();
+
+}
+app.UseStatusCodePages();
+
+app.MapGet("/", HtmlResult () =>
+{
+    string html = "<h2> Welcome to our API </h2> Our api is ued to learn ASP.NET CORE"; // pure text
+    return new HtmlResult(html);
 });
 
 app.MapGet("/employees", () =>
@@ -17,14 +31,32 @@ app.MapGet("/employees", () =>
     return employee; // return an object 
 });
 
-app.MapPost("/employees", (Employee emp) =>
-{
-    if (emp.Id <= 0)
-        return Results.BadRequest("Invalid Employee Id"); // Bad request 400
+//app.MapPost("/employees", (Employee emp) =>
+//{
+//    if (emp.Id <= 0)
+//        return TypedResults.BadRequest("Invalid Employee Id"); // Bad request 400
 
-    EmployeesRepository.AddEmployee(emp);
-    return Results.Created($"/employees/{emp.Id}", emp);
-});
+//    EmployeesRepository.AddEmployee(emp);
+//    return TypedResults.Created($"/employees/{emp.Id}", emp);
+//});
+
+
+app.MapPost("/employees",
+    Results<ProblemHttpResult, Created<Employee>>
+    (Employee emp) =>
+    {
+        if (emp.Id <= 0)
+        {
+            return TypedResults.Problem(
+                title: "Invalid Employee Id",
+                detail: "Employee Id must be greater than zero.",
+                statusCode: 400
+            );
+        }
+
+        EmployeesRepository.AddEmployee(emp);
+        return TypedResults.Created($"/employees/{emp.Id}", emp);
+    });
 
 app.Run();
 
@@ -50,6 +82,48 @@ app.Run();
  *   
  *   - In order to return status code we can take advantage of the IResult return type in the endpoint handler and in order to return Irsult we can either use
  *     TypedResult or Result.
+ *   
+ *   - We have discuessed that whenever possible it's recommeded to use TypedResult but 
+ *   
+ *   
+ *      app.MapPost("/employees", (Employee emp) => // here we will get swiggly line error
+ *      {
+ *         if (emp.Id <= 0)
+ *         return TypedResults.BadRequest("Invalid Employee Id"); // Bad request 400  // this 
+ *
+ *         EmployeesRepository.AddEmployee(emp);
+ *         return TypedResults.Created($"/employees/{emp.Id}", emp); // this are not of same type and this cause an error.
+ *      });
+ *   
+ *     - the purpose of post request is to crete resource therefore the return type when it is successful it is not TypedResult.Ok,it is not http 200 ok,
+ *       it should be created , so created is staus 201. 
+ *       
+ * - What Is Problem Details?
+ * 
+ *   - It is a standard JSON format for returning error from APIs. Instaed of returning random error message like "Invalid employeeId" we can send staructured
+ *     respone.  
+ *             for example ,
+ *                           {
+ *                              "type": "https://example.com/errors/invalid-id",
+ *                              "title": "Invalid Employee Id",
+ *                             "status": 400,
+ *                              "detail": "Employee Id must be greater than 0",
+ *                              "instance": "/employees"
+ *                            }
+ *             - this makes api 
+ *                1. Stardard
+ *                2. Structured
+ *                3. Easier to consume by the frontend/mobile. 
+ *                
  *     
+ *  
+ * - Standardize API results : RFC standard  - https://www.rfc-editor.org/rfc/rfc7807.html
+ * 
+ *   - We know that inside the pipeline there is exception handler middleware, we can  add that middleware to our pipeline  and we hav o do that is specific 
+ *     manner, we can't do that in noraml way.
+ *     
+ * - Customize results by implementing IResult : Till now we know the result class provide all those status code, but what if we need to return a HTML. How
+ *     do we do it ? we get HTML from it ? We can create a HTML result class that implements the IResult interface and then by implementing the interface we can
+ *     prepare any response that we want to create.
  **/
 
