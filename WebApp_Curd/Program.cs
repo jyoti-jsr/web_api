@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using WebApp_Curd.Models;
 using Microsoft.AspNetCore.Mvc;
 using WebApp_Curd.Result;
+using WebApp_Curd.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,83 +20,19 @@ if (app.Environment.IsDevelopment())
 }
 app.UseStatusCodePages();
 
-app.MapGet("/", HtmlResult () =>
-{
-    string html = "<h2> Welcome to our API </h2> Our api is ued to learn ASP.NET CORE"; // pure text
-    return new HtmlResult(html);
-});
-
-app.MapGet("/employees", () =>
-{
-    var employee = EmployeesRepository.GetEmployees();
-    return TypedResults.Ok(employee); // return an object 
-});
-
-app.MapGet("/employees/{id:int}", (int id) =>
-{
-    var employee = EmployeesRepository.GetEmployeeById(id);
-
-
-    return employee is not null ? TypedResults.Ok(employee) : Results.ValidationProblem(new Dictionary<string, string[]>
-    {
-        {"id", new [] {$"Employee with id {id} doesn't exists."} }
-    }, statusCode: 404);
-
-});
-
-app.MapPost("/employees", (Employee employee) =>
-{
-
-    if (employee is null || employee.Id < 0)
-    {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            {"id", new [] {"Employee is not provided or is not valid"} }
-        });
-    }
-
-    EmployeesRepository.AddEmployee(employee);
-    return TypedResults.Created($"/employee/{employee.Id}", employee);
-
-});
-
-app.MapPut("/employees/{id:int}", (int id, Employee employee) =>
-{
-
-    if (id != employee.Id)
-    {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            {"id", new [] {"Employee id is not matching any records"} }
-        });
-    }
-
-
-    return EmployeesRepository.UpdateEmployee(employee) ? TypedResults.NoContent() : Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            {"id", new [] {"Employee does'nt exists"} }
-        });
-});
-
-app.MapDelete("/employees/{id:int}", (int id) =>
-{
-
-    if (id < 0)
-    {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            {"id", new [] {"Employee is not provided or is not valid"} }
-        });
-    }
-
-    return EmployeesRepository.DeleteEmployeeById(id) ? TypedResults.Ok(id) : Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            {"id", new [] {"Employee with the id {id} doesn't exits"} }
-        });
-
-});
+app.MapEmployeeEndpoints();
 
 
 app.Run();
+
+/**
+ * - Organize minimal api endpoints : code organization and dependency injection
+ * 
+ *   - In our program.cs files we have many endpoinst and they may grow and make our code messay  so it can be impossible to maintain code properly with every
+ *     thing within the same file, so there must be a way to organize the code. One of the way is to use extension method.
+ *     
+ *   - Program.cs files is where we configure the application and kestrel server, it should not include any logic whether it's framnework logic or 
+ *     any logic.
+ **/
 
 
